@@ -111,12 +111,19 @@ fn main() {
 
     while let Some(e) = events.next(&mut window) {
         touch_visualizer.event(window.size(), &e);
-        println!("cursor: {:?}", cursor);
         
         e.mouse_cursor(|pos| {
             cursor = pos;
             cur.x = pos[0] - (cur.side / 2.0); 
             cur.y = pos[1];
+        });
+
+        e.mouse_scroll(|d| {
+            if d[1] < 0.0 && cur.side > 5.0 {
+                cur.side += 5.0 * d[1];
+            } else if d[1] > 0.0 && cur.side < 50.0 {
+                cur.side += 5.0 * d[1];
+            }
         });
 
         e.button(|args| {
