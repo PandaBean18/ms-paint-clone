@@ -17,6 +17,7 @@ use piston::input::{RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
 use piston::window::WindowSettings;
 use crate::piston::Window as OtherWindow;
 use piston::input::*;
+ use piston::Size;
 
 pub struct App {
     gl: GlGraphics, 
@@ -46,6 +47,8 @@ impl App {
 
         self.gl.draw(args.viewport(), |c, gl| {
             clear(WHITE, gl); 
+            let canvas_border = Rectangle::new_border(color::BLACK, 1.0);
+            canvas_border.draw([0.0, 0.0, 600.0, 400.0], &draw_state::DrawState::default(), c.transform.trans((args.window_size[0] - 600.0) / 2.0, 50.0), gl);
 
             let x: f64; 
             let y: f64; 
@@ -76,6 +79,20 @@ impl App {
             }
             
         });
+        
+
+    }
+
+    fn cursor_inside_canvas(&self, cur: &AppSquare, window_size: &Size) -> bool {
+        if !(cur.x >= (window_size.width - 600.0) / 2.0 && cur.x + (cur.side) <= ((window_size.width - 600.0) / 2.0) + 600.0) {
+            return false;
+        }
+
+        if !(cur.y - (cur.side / 2.0) >= (window_size.height - 400.0) / 2.0 && cur.y + (cur.side / 2.0) <= ((window_size.height - 400.0) / 2.0) + 400.0) {
+            return false;
+        }
+
+        return true;
     }
 
 }
@@ -83,7 +100,7 @@ impl App {
 fn main() {
     let opengl = OpenGL::V3_2;
 
-    let mut window: Window = WindowSettings::new("test", [500, 500])
+    let mut window: Window = WindowSettings::new("test", [800, 500])
         .graphics_api(opengl)
         .exit_on_esc(true)
         .build()
@@ -111,7 +128,7 @@ fn main() {
 
     while let Some(e) = events.next(&mut window) {
         touch_visualizer.event(window.size(), &e);
-        
+
         e.mouse_cursor(|pos| {
             cursor = pos;
             cur.x = pos[0] - (cur.side / 2.0); 
@@ -135,15 +152,17 @@ fn main() {
                 match prev_mouse_button {
                     None => {}
                     Some(MouseButton::Left) => {
-                        let mut sq = AppSquare {
-                            x: cursor[0]-(cur.side / 2.0), 
-                            y: cursor[1], 
-                            color: cur.color, 
-                            side: cur.side, 
-                            dir: Direction::None
-                        };
+                        if app.cursor_inside_canvas(&cur, &window.size()) {
+                            let mut sq = AppSquare {
+                                x: cursor[0]-(cur.side / 2.0), 
+                                y: cursor[1], 
+                                color: cur.color, 
+                                side: cur.side, 
+                                dir: Direction::None
+                            };
 
-                        squares.push(sq);
+                            squares.push(sq);
+                        }
                     }
                     _ => {}
                 }
